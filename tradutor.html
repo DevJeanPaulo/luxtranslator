@@ -690,71 +690,80 @@ async function processTranslation(text){
   if(rec){try{rec.stop();}catch(e){}}
   setUI('think');
 
-  let fromLang,toLang,isAuto=false;
-
-  if(!autoDetect){
-    fromLang=langA||{code:'pt',name:'Portugues',flag:'PT'};
-    toLang=langB||{code:'en',name:'Ingles',flag:'GB'};
-    addMsg(fromLang,toLang,text,'...',false);
-  } else {
-    fromLang={code:'auto',name:'A detetar...',flag:'🌐'};
-    toLang={code:'auto',name:'...',flag:'🌐'};
-    addMsg(fromLang,toLang,text,'...',true);
-    isAuto=true;
-  }
+  // Show placeholder immediately
+  const fromPlaceholder = {code:'auto',name:'A detetar...',flag:'🌐'};
+  const toPlaceholder = {code:'pt',name:'Português',flag:'🇵🇹'};
+  addMsg(fromPlaceholder, toPlaceholder, text, '...', true);
 
   try{
-    const lastClientName = (window._lastClientLang && window._lastClientLang.name) ? window._lastClientLang.name : 'Ingles';
-    const lastClientCode = (window._lastClientLang && window._lastClientLang.code) ? window._lastClientLang.code : 'en';
-    const safeText = String(text).substring(0,200).replace(/'/g,'').replace(/"/g,'');
+    const lastClientName = (window._lastClientLang&&window._lastClientLang.name)?window._lastClientLang.name:'English';
+    const lastClientCode = (window._lastClientLang&&window._lastClientLang.code)?window._lastClientLang.code:'en';
+    const safeText = String(text).substring(0,300).replace(/'/g,'').replace(/"/g,'');
 
-    let msgContent;
-    if(autoDetect){
-      msgContent = 'Detect language and translate. Reply ONLY with valid JSON. Example: {"from_lang":"fr","from_name":"Frances","from_flag":"FR","to_lang":"pt","to_name":"Portugues","to_flag":"PT","translation":"ola","is_driver":false}. Rules: If Portuguese then is_driver=true and translate to ' + lastClientName + ' (code:' + lastClientCode + '). If any other language then is_driver=false and translate to Portuguese. Text: ' + safeText;
-    } else {
-      msgContent = 'Translate from ' + fromLang.name + ' to ' + toLang.name + '. Return ONLY the translation, nothing else: ' + safeText;
-    }
+    // FAST single prompt - minimal JSON response
+    const prompt = autoDetect
+      ? 'Reply ONLY with JSON (no markdown): {"d":"detected_language_iso_code","t":"translation_here","pt":true_if_portuguese_false_otherwise}. Rules: detect language of text, if Portuguese set pt=true and translate to ' + lastClientName + ', otherwise set pt=false and translate to Portuguese. Text: ' + safeText
+      : 'Translate to ' + (langB?langB.name:'English') + '. Reply ONLY with the translation, nothing else: ' + safeText;
 
-    const sendKey = (apiKey === 'server') ? '' : apiKey;
+    const sendKey = (apiKey==='server')?'':apiKey;
     const r = await fetch('/api/translate',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({apiKey: sendKey, messages:[{role:'user',content:msgContent}]})
+      body: JSON.stringify({apiKey:sendKey, messages:[{role:'user',content:prompt}]})
     });
+
     const d = await r.json();
+    const raw = d.content?.[0]?.text?.trim()||'';
+
     let translated = '';
+    let fromLang = fromPlaceholder;
+    let toLang = toPlaceholder;
 
     if(autoDetect){
       try{
-        const raw = d.content?.[0]?.text?.trim()||'{}';
         const cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
         const parsed = JSON.parse(cleaned);
-        translated = parsed.translation||'';
-        fromLang = {code:parsed.from_lang||'?',name:parsed.from_name||'?',flag:parsed.from_flag||'🌐'};
-        toLang = {code:parsed.to_lang||'pt',name:parsed.to_name||'Portugues',flag:parsed.to_flag||'🇵🇹'};
-        const msgs_last=msgs[msgs.length-1];
-        if(msgs_last){
-          msgs_last.from=fromLang;msgs_last.to=toLang;
-          const msgEl=document.getElementById(msgs_last.id);
-          if(msgEl){
-            msgEl.querySelectorAll('.msg-flag')[0].textContent=fromLang.flag;
-            msgEl.querySelectorAll('.msg-lang')[0].textContent=fromLang.name;
-            msgEl.querySelectorAll('.msg-flag')[1].textContent=toLang.flag;
-            msgEl.querySelectorAll('.msg-lang')[1].textContent=toLang.name;
-          }
+        translated = parsed.t || '';
+        const isDriver = parsed.pt === true;
+
+        if(isDriver){
+          // Portuguese speaker (driver) → translate to client language
+          fromLang = {code:'pt',name:'Português',flag:'🇵🇹'};
+          toLang = window._lastClientLang || {code:'en',name:'English',flag:'🇬🇧'};
+        } else {
+          // Foreign speaker (client) → translate to Portuguese
+          const detCode = parsed.d || 'en';
+          fromLang = {code:detCode, name:detCode.toUpperCase(), flag:'🌐'};
+          toLang = {code:'pt',name:'Português',flag:'🇵🇹'};
+          // Save client language
+          window._lastClientLang = fromLang;
         }
-        document.getElementById('det-box').classList.add('active');
-        document.getElementById('det-from').textContent=fromLang.name;
-        document.getElementById('det-to').textContent=toLang.name;
-        if(!parsed.is_driver && parsed.from_lang && parsed.from_lang !== 'pt'){
-          window._lastClientLang={code:parsed.from_lang,name:parsed.from_name,flag:parsed.from_flag};
-        }
-      }catch(e){
-        translated = d.content?.[0]?.text?.trim()||'';
+      } catch(e){
+        // If JSON parse fails, raw is the translation
+        translated = raw;
+        toLang = {code:'pt',name:'Português',flag:'🇵🇹'};
       }
     } else {
-      translated = d.content?.[0]?.text?.trim()||'';
+      translated = raw;
+      fromLang = langA||{code:'pt',name:'Português',flag:'🇵🇹'};
+      toLang = langB||{code:'en',name:'English',flag:'🇬🇧'};
     }
+
+    // Update the message with real data
+    const lastMsg = msgs[msgs.length-1];
+    if(lastMsg){
+      lastMsg.from=fromLang; lastMsg.to=toLang;
+      const el=document.getElementById(lastMsg.id);
+      if(el){
+        el.querySelectorAll('.msg-flag')[0].textContent=fromLang.flag;
+        el.querySelectorAll('.msg-lang')[0].textContent=fromLang.name;
+        el.querySelectorAll('.msg-flag')[1].textContent=toLang.flag;
+        el.querySelectorAll('.msg-lang')[1].textContent=toLang.name;
+      }
+    }
+    document.getElementById('det-from').textContent=fromLang.name;
+    document.getElementById('det-to').textContent=toLang.name;
+    document.getElementById('det-box').classList.add('active');
 
     if(translated){
       updateLastMsg(translated);
