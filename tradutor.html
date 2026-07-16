@@ -1518,6 +1518,11 @@ window.onload=()=>{
         try { document.getElementById('tog-deepl').classList.add('on'); } catch(e){}
         try { document.getElementById('deepl-config').style.display='flex'; } catch(e){}
       }
+      // If server has both keys, user is on company plan - no trial limit
+      if(d.hasKey && d.hasDeepL) {
+        isPro = true;
+        trialCount = 0;
+      }
       if(!d.hasKey) {
         // Check subscription status
   checkSubscription();
