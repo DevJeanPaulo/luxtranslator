@@ -195,6 +195,26 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 .debug-line.inf{color:#55f}
 .debug-toggle{position:fixed;bottom:70px;right:10px;background:#111;border:1px solid var(--red);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--red);cursor:pointer;z-index:9999}
 
+
+/* PAYWALL */
+.paywall-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.paywall-overlay.open{display:flex}
+.paywall-card{background:var(--card);border:1.5px solid var(--gold);border-radius:20px;padding:28px 22px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px;position:relative}
+.paywall-crown{text-align:center;font-size:44px;line-height:1}
+.paywall-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold-light);text-align:center;letter-spacing:1px}
+.paywall-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+.paywall-features{display:flex;flex-direction:column;gap:8px}
+.paywall-feature{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--white-dim)}
+.paywall-feature span{color:var(--gold);font-size:16px}
+.paywall-price{background:linear-gradient(135deg,#1A1200,#0D0A00);border:1px solid var(--gold);border-radius:14px;padding:16px;text-align:center}
+.paywall-amount{font-family:'Playfair Display',serif;font-size:42px;color:var(--gold-light);font-weight:700}
+.paywall-period{font-size:12px;color:var(--muted);margin-top:4px}
+.paywall-saving{font-size:11px;color:var(--gold);margin-top:4px}
+.btn-subscribe{background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:12px;padding:16px;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--black);cursor:pointer;width:100%;font-family:'Inter',sans-serif}
+.btn-continue-free{background:none;border:1px solid var(--black-border);border-radius:12px;padding:12px;font-size:12px;color:var(--muted);cursor:pointer;width:100%;font-family:'Inter',sans-serif}
+.paywall-trial{text-align:center;font-size:11px;color:var(--muted)}
+.paywall-trial strong{color:var(--gold)}
+
 /* TOAST */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:12px;color:var(--dim);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;z-index:9999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -350,12 +370,28 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
       <div style="font-size:10px;color:var(--muted);margin-top:6px">Palavra de paragem: sempre <strong style="color:var(--red)">"Finalizar"</strong></div>
     </div>
     <div class="s-sec">
+      <span class="s-lbl">⚡ DeepL API — Tradução Rápida</span>
+      <div class="s-row">
+        <div><div class="s-row-t">Usar DeepL</div><div class="s-row-s">Tradução em menos de 1 segundo</div></div>
+        <button class="tog2" id="tog-deepl" onclick="toggleDeepL()"></button>
+      </div>
+      <div id="deepl-config" style="margin-top:10px;display:none;flex-direction:column;gap:8px">
+        <div class="s-row-wrap">
+          <input type="password" class="s-inp" id="deepl-key-inp" placeholder="xxxxxxxx-xxxx-xxxx-xxxx:fx">
+          <button class="btn-gold" onclick="saveDeepLKey()">Guardar</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted)">deepl.com/pro-api → API Keys</div>
+        <button onclick="testDeepL()" style="background:var(--black-soft);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;color:var(--gold);cursor:pointer;font-family:Inter,sans-serif">🔊 Testar DeepL</button>
+        <div id="deepl-status" style="font-size:11px;color:var(--muted);text-align:center"></div>
+      </div>
+    </div>
+    <div class="s-sec">
       <span class="s-lbl">Chave API Anthropic</span>
       <div class="s-row-wrap">
         <input type="password" class="s-inp" id="s-api" placeholder="sk-ant-...">
         <button class="btn-gold" onclick="saveApiSettings()">Guardar</button>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px">console.anthropic.com → API Keys</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">Usado como fallback se DeepL não estiver ativo</div>
     </div>
     <div class="s-sec">
       <span class="s-lbl">Comportamento</span>
@@ -443,6 +479,42 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 <button class="debug-toggle" onclick="toggleDebug()">🐛 Debug</button>
 <div class="debug-panel" id="debug-panel"></div>
 
+
+  <!-- PAYWALL -->
+  <div class="paywall-overlay" id="paywall-overlay">
+    <div class="paywall-card">
+      <div class="paywall-crown">👑</div>
+      <div class="paywall-title">LuxTranslator Premium</div>
+      <div class="paywall-sub">Continua a traduzir sem limites com o plano Premium</div>
+      <div class="paywall-features">
+        <div class="paywall-feature"><span>✦</span> Traduções ilimitadas</div>
+        <div class="paywall-feature"><span>✦</span> Deteção automática de idioma</div>
+        <div class="paywall-feature"><span>✦</span> Compatível com Android Auto e CarPlay</div>
+        <div class="paywall-feature"><span>✦</span> Modo intérprete contínuo</div>
+        <div class="paywall-feature"><span>✦</span> Suporte prioritário</div>
+      </div>
+      <div class="paywall-price">
+        <div class="paywall-amount"><span style="font-size:20px;vertical-align:super">€</span>1<small style="font-size:24px">,99</small></div>
+        <div class="paywall-period">por mês · Cancele quando quiser</div>
+        <div class="paywall-saving">✦ Menos de 7 cêntimos por dia</div>
+      </div>
+      <button class="btn-subscribe" onclick="goSubscribe()">✦ Subscrever Agora</button>
+      
+      <!-- Email verification after payment -->
+      <div id="verify-section" style="display:none;flex-direction:column;gap:8px">
+        <div style="text-align:center;font-size:12px;color:var(--muted)">Já subscreveste? Insere o teu email para ativar:</div>
+        <input type="email" id="verify-email" placeholder="email@exemplo.com" style="background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--white);font-family:Inter,sans-serif;outline:none;width:100%;box-sizing:border-box">
+        <button onclick="verifySubscription()" style="background:var(--black-card);border:1px solid var(--gold);border-radius:10px;padding:12px;font-size:12px;color:var(--gold);cursor:pointer;font-family:Inter,sans-serif;letter-spacing:1px">✓ Verificar Subscrição</button>
+        <div id="verify-status" style="font-size:11px;text-align:center;color:var(--muted)"></div>
+      </div>
+
+      <button onclick="toggleVerify()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline">Já subscreveste? Clica aqui</button>
+      <button class="btn-continue-free" onclick="closePaywall()">Continuar com versão gratuita</button>
+      <div class="paywall-trial">Tens <strong id="trial-remaining">10</strong> traduções gratuitas restantes</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted)">Renovação automática mensal · Cancele a qualquer momento</div>
+    </div>
+  </div>
+
 </div><!-- #app -->
 
 <script>
@@ -499,6 +571,13 @@ const LANGS=[
 // STATE
 // ══════════════════
 let apiKey='', wakeWord='teste', stopWord='finalizar';
+let isPro = false;
+let trialCount = 0;
+const TRIAL_LIMIT = 10; // 10 traduções grátis
+const STRIPE_URL = 'https://buy.stripe.com/dRm8wP74je8bat7g4Bawo01';
+const VERIFY_URL = 'https://luxtransfers.pt/api/verify.php';
+let deeplKey=''; // DeepL API key for fast translation
+let useDeepL=false;
 let isOn=false, isInterp=false, isProcessing=false, isSpeaking=false;
 let autoDetect=true, voiceOn=true, bgOn=true;
 let langA=null, langB=null, langTarget='A';
@@ -686,88 +765,116 @@ function startListening(){
 // ══════════════════
 async function processTranslation(text){
   if(!text||!apiKey||isProcessing)return;
+  if(!checkTrialLimit()) return;
   isProcessing=true;
   if(rec){try{rec.stop();}catch(e){}}
   setUI('think');
 
-  // Show placeholder immediately
-  const fromPlaceholder = {code:'auto',name:'A detetar...',flag:'🌐'};
-  const toPlaceholder = {code:'pt',name:'Português',flag:'🇵🇹'};
-  addMsg(fromPlaceholder, toPlaceholder, text, '...', true);
+  const fromPlaceholder={code:'auto',name:'A detetar...',flag:'🌐'};
+  const toPlaceholder={code:'pt',name:'Português',flag:'🇵🇹'};
+  addMsg(fromPlaceholder,toPlaceholder,text,'...',true);
 
+  // ⚡ USE DEEPL IF AVAILABLE (fast path ~0.5s)
+  if(useDeepL && deeplKey){
+    try{
+      const result = await detectLanguageDeepL(text);
+      if(result){
+        const detectedCode = result.detectedLang.toLowerCase();
+        const isPT = detectedCode === 'pt' || detectedCode === 'pt-pt' || detectedCode === 'pt-br';
+        let translated='', fromLang, toLang;
+
+        if(isPT){
+          // Driver speaking Portuguese → translate to last client language
+          const clientCode = window._lastClientLang ? (DEEPL_LANGS[window._lastClientLang.code]||'EN') : 'EN';
+          const clientName = window._lastClientLang ? window._lastClientLang.name : 'English';
+          const clientFlag = window._lastClientLang ? window._lastClientLang.flag : '🇬🇧';
+          const clientLangCode = window._lastClientLang ? window._lastClientLang.code : 'en';
+          translated = await translateWithDeepL(text, 'PT', clientCode);
+          fromLang={code:'pt',name:'Português',flag:'🇵🇹'};
+          toLang={code:clientLangCode,name:clientName,flag:clientFlag};
+        } else {
+          // Client speaking foreign language → translate to Portuguese
+          // DeepL already translated to PT in detectLanguageDeepL
+          translated = result.translation;
+          fromLang={code:detectedCode,name:detectedCode.toUpperCase(),flag:'🌐'};
+          toLang={code:'pt',name:'Português',flag:'🇵🇹'};
+          // Save client language
+          window._lastClientLang={code:detectedCode,name:detectedCode.toUpperCase(),flag:'🌐'};
+        }
+
+        // Update message
+        updateMsgLangs(fromLang,toLang);
+        document.getElementById('det-from').textContent=fromLang.name;
+        document.getElementById('det-to').textContent=toLang.name;
+        document.getElementById('det-box').classList.add('active');
+
+        if(translated){
+          updateLastMsg(translated);
+          isProcessing=false;
+          if(voiceOn) speak(translated,toLang.code||'pt');
+          else { setUI(isInterp?'go':'on'); startListening(); }
+        } else {
+          updateLastMsg('[Erro DeepL]');
+          isProcessing=false;
+          setUI(isInterp?'go':'on');
+          startListening();
+        }
+        return; // Done with DeepL fast path
+      }
+    }catch(e){
+      console.error('DeepL error, falling back to Claude:',e.message);
+    }
+  }
+
+  // 🐢 FALLBACK: Use Claude API (slower)
   try{
-    const lastClientName = (window._lastClientLang&&window._lastClientLang.name)?window._lastClientLang.name:'English';
-    const lastClientCode = (window._lastClientLang&&window._lastClientLang.code)?window._lastClientLang.code:'en';
-    const safeText = String(text).substring(0,300).replace(/'/g,'').replace(/"/g,'');
+    const lastClientName=(window._lastClientLang&&window._lastClientLang.name)?window._lastClientLang.name:'English';
+    const lastClientCode=(window._lastClientLang&&window._lastClientLang.code)?window._lastClientLang.code:'en';
+    const safeText=String(text).substring(0,300).replace(/'/g,'').replace(/"/g,'');
+    const prompt=autoDetect
+      ?'Reply ONLY with JSON: {"d":"lang_code","t":"translation","pt":true_if_portuguese}. If Portuguese: pt=true, translate to '+lastClientName+'. Else: pt=false, translate to Portuguese. Text: '+safeText
+      :'Translate to '+(langB?langB.name:'English')+'. Reply ONLY with translation: '+safeText;
 
-    // FAST single prompt - minimal JSON response
-    const prompt = autoDetect
-      ? 'Reply ONLY with JSON (no markdown): {"d":"detected_language_iso_code","t":"translation_here","pt":true_if_portuguese_false_otherwise}. Rules: detect language of text, if Portuguese set pt=true and translate to ' + lastClientName + ', otherwise set pt=false and translate to Portuguese. Text: ' + safeText
-      : 'Translate to ' + (langB?langB.name:'English') + '. Reply ONLY with the translation, nothing else: ' + safeText;
-
-    const sendKey = (apiKey==='server')?'':apiKey;
-    const r = await fetch('/api/translate',{
+    const sendKey=(apiKey==='server')?'':apiKey;
+    const r=await fetch('/api/translate',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({apiKey:sendKey, messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({apiKey:sendKey,messages:[{role:'user',content:prompt}]})
     });
-
-    const d = await r.json();
-    const raw = d.content?.[0]?.text?.trim()||'';
-
-    let translated = '';
-    let fromLang = fromPlaceholder;
-    let toLang = toPlaceholder;
+    const d=await r.json();
+    const raw=d.content?.[0]?.text?.trim()||'';
+    let translated='',fromLang=fromPlaceholder,toLang=toPlaceholder;
 
     if(autoDetect){
       try{
-        const cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-        const parsed = JSON.parse(cleaned);
-        translated = parsed.t || '';
-        const isDriver = parsed.pt === true;
-
-        if(isDriver){
-          // Portuguese speaker (driver) → translate to client language
-          fromLang = {code:'pt',name:'Português',flag:'🇵🇹'};
-          toLang = window._lastClientLang || {code:'en',name:'English',flag:'🇬🇧'};
+        const parsed=JSON.parse(raw.replace(/```json/g,'').replace(/```/g,'').trim());
+        translated=parsed.t||'';
+        if(parsed.pt){
+          fromLang={code:'pt',name:'Português',flag:'🇵🇹'};
+          toLang=window._lastClientLang||{code:'en',name:'English',flag:'🇬🇧'};
         } else {
-          // Foreign speaker (client) → translate to Portuguese
-          const detCode = parsed.d || 'en';
-          fromLang = {code:detCode, name:detCode.toUpperCase(), flag:'🌐'};
-          toLang = {code:'pt',name:'Português',flag:'🇵🇹'};
-          // Save client language
-          window._lastClientLang = fromLang;
+          fromLang={code:parsed.d||'?',name:(parsed.d||'?').toUpperCase(),flag:'🌐'};
+          toLang={code:'pt',name:'Português',flag:'🇵🇹'};
+          window._lastClientLang=fromLang;
         }
-      } catch(e){
-        // If JSON parse fails, raw is the translation
-        translated = raw;
-        toLang = {code:'pt',name:'Português',flag:'🇵🇹'};
-      }
+      }catch(e){ translated=raw; }
     } else {
-      translated = raw;
-      fromLang = langA||{code:'pt',name:'Português',flag:'🇵🇹'};
-      toLang = langB||{code:'en',name:'English',flag:'🇬🇧'};
+      translated=raw;
+      fromLang=langA||{code:'pt',name:'Português',flag:'🇵🇹'};
+      toLang=langB||{code:'en',name:'English',flag:'🇬🇧'};
     }
 
-    // Update the message with real data
-    const lastMsg = msgs[msgs.length-1];
-    if(lastMsg){
-      lastMsg.from=fromLang; lastMsg.to=toLang;
-      const el=document.getElementById(lastMsg.id);
-      if(el){
-        el.querySelectorAll('.msg-flag')[0].textContent=fromLang.flag;
-        el.querySelectorAll('.msg-lang')[0].textContent=fromLang.name;
-        el.querySelectorAll('.msg-flag')[1].textContent=toLang.flag;
-        el.querySelectorAll('.msg-lang')[1].textContent=toLang.name;
-      }
-    }
+    updateMsgLangs(fromLang,toLang);
     document.getElementById('det-from').textContent=fromLang.name;
     document.getElementById('det-to').textContent=toLang.name;
     document.getElementById('det-box').classList.add('active');
 
     if(translated){
       updateLastMsg(translated);
-      if(voiceOn) speak(translated, toLang.code||'pt');
+      if(!isPro) trialCount++;
+      isProcessing=false;
+      if(voiceOn) speak(translated,toLang.code||'pt');
+      else { setUI(isInterp?'go':'on'); startListening(); }
     } else {
       updateLastMsg('[Erro na tradução]');
       isProcessing=false;
@@ -775,11 +882,23 @@ async function processTranslation(text){
       startListening();
     }
   }catch(e){
-    console.error('Translation error:',e.message);
     updateLastMsg('[Erro: '+e.message+']');
     isProcessing=false;
     setUI(isInterp?'go':'on');
     startListening();
+  }
+}
+
+function updateMsgLangs(fromLang,toLang){
+  const lastMsg=msgs[msgs.length-1];
+  if(!lastMsg)return;
+  lastMsg.from=fromLang;lastMsg.to=toLang;
+  const el=document.getElementById(lastMsg.id);
+  if(el){
+    el.querySelectorAll('.msg-flag')[0].textContent=fromLang.flag;
+    el.querySelectorAll('.msg-lang')[0].textContent=fromLang.name;
+    el.querySelectorAll('.msg-flag')[1].textContent=toLang.flag;
+    el.querySelectorAll('.msg-lang')[1].textContent=toLang.name;
   }
 }
 
@@ -828,84 +947,45 @@ function wakeBluetoothAudio() {
   } catch(e) {}
 }
 
-async function speak(text, lang) {
-  // Use ElevenLabs if enabled
-  if (useElevenLabs && elevenKey && elevenVoiceId) {
-    const ok = await speakElevenLabs(text);
-    if (ok) return;
-    // Fallback to system TTS if ElevenLabs fails
-    showToast('⚠️ ElevenLabs falhou, usando voz do sistema');
-  }
-
+function speak(text, lang) {
+  if(!text) return;
   speechSynthesis.cancel();
 
-  // Acorda o canal Bluetooth antes de falar
-  wakeBluetoothAudio();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang || 'pt';
+  u.rate = voiceSpeed || 1.0;
+  u.volume = 1.0;
+  u.pitch = forceMale ? 0.85 : 1.0;
 
-  // Aguarda o canal BT acordar e depois fala
-  setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang;
-    u.rate = voiceSpeed;
-    u.volume = 1.0;
-    u.pitch = 1.0;
+  // Select best voice
+  const voices = speechSynthesis.getVoices();
+  const langCode = (lang||'pt').substring(0,2);
+  const v = voices.find(x => x.lang.startsWith(langCode) && maleKeywords.some(k => x.name.toLowerCase().includes(k)))
+         || voices.find(x => x.lang.startsWith(langCode));
+  if(v) u.voice = v;
 
-    // Seleciona melhor voz masculina disponível
-    const v = getBestMaleVoice(lang.substring(0,2));
-    if (v) {
-      u.voice = v;
-      console.log('Voice:', v.name, v.lang);
-      document.getElementById('voice-name').textContent = v.name;
-    }
-    u.pitch = forceMale ? 0.85 : 1.0; // Mais grave para voz masculina
+  u.onstart = () => {
+    isSpeaking = true;
+    isProcessing = false;
+    setUI('speak');
+  };
+  u.onend = () => {
+    isSpeaking = false;
+    setUI(isInterp ? 'go' : 'on');
+    setTimeout(() => startListening(), 200);
+  };
+  u.onerror = () => {
+    isSpeaking = false;
+    isProcessing = false;
+    setUI(isInterp ? 'go' : 'on');
+    startListening();
+  };
 
-    u.onstart = () => {
-      isSpeaking = true;
-      isProcessing = false;
-      setUI('speak');
-      // Mantém o AudioContext ativo durante a fala
-      try { getAudioContext().resume(); } catch(e) {}
-    };
-
-    u.onend = () => {
-      isSpeaking = false;
-      setUI(isInterp ? 'go' : 'on');
-      setTimeout(() => startListening(), 400);
-    };
-
-    u.onerror = (e) => {
-      console.log('Speech error:', e.error);
-      isSpeaking = false;
-      isProcessing = false;
-      setUI(isInterp ? 'go' : 'on');
-      startListening();
-    };
-
-    // Fallback: se speechSynthesis falhar, tenta novamente
-    speechSynthesis.speak(u);
-
-    // Watchdog: se não começar em 3s, tenta novamente
-    const watchdog = setTimeout(() => {
-      if (isSpeaking) return;
-      speechSynthesis.cancel();
-      wakeBluetoothAudio();
-      setTimeout(() => speechSynthesis.speak(u), 500);
-    }, 3000);
-
-    u.onstart = () => {
-      clearTimeout(watchdog);
-      isSpeaking = true;
-      isProcessing = false;
-      setUI('speak');
-      try { getAudioContext().resume(); } catch(e) {}
-    };
-
-  }, 600); // 600ms de espera para o BT rotear o áudio
+  // Speak immediately - no delay
+  speechSynthesis.speak(u);
 }
 
-// ══════════════════
-// CONVERSATION
-// ══════════════════
+
 function addMsg(from,to,orig,trans,auto){
   document.getElementById('conv-empty')?.remove();
   const now=new Date().toLocaleTimeString('pt',{hour:'2-digit',minute:'2-digit'});
@@ -1325,6 +1405,229 @@ window.fetch = async function(...args) {
   }
 };
 
+
+
+// ══════════════════
+// PAYWALL / SUBSCRIPTION
+// ══════════════════
+function checkSubscription() {
+  try {
+    const sub = localStorage.getItem('lux_pro');
+    const expiry = localStorage.getItem('lux_pro_expiry');
+    const email = localStorage.getItem('lux_pro_email');
+    if (sub === '1' && expiry && new Date(expiry) > new Date()) {
+      isPro = true;
+      // Silently re-verify every 7 days
+      const lastVerify = localStorage.getItem('lux_last_verify');
+      const daysSince = lastVerify ? (Date.now() - parseInt(lastVerify)) / 86400000 : 999;
+      if (email && daysSince > 7) {
+        fetch(VERIFY_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})})
+          .then(r=>r.json()).then(d=>{
+            if(!d.active){ isPro=false; localStorage.removeItem('lux_pro'); }
+            else localStorage.setItem('lux_last_verify', Date.now().toString());
+          }).catch(()=>{});
+      }
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function showPaywall() {
+  const remaining = Math.max(0, TRIAL_LIMIT - trialCount);
+  document.getElementById('trial-remaining').textContent = remaining;
+  document.getElementById('paywall-overlay').classList.add('open');
+}
+
+function closePaywall() {
+  document.getElementById('paywall-overlay').classList.remove('open');
+}
+
+function goSubscribe() {
+  window.open(STRIPE_URL, '_blank');
+  closePaywall();
+  showToast('A abrir página de pagamento...');
+}
+
+function activatePro() {
+  isPro = true;
+  try {
+    const expiry = new Date();
+    expiry.setMonth(expiry.getMonth() + 1);
+    localStorage.setItem('lux_pro', '1');
+    localStorage.setItem('lux_pro_expiry', expiry.toISOString());
+  } catch(e) {}
+  showToast('✦ Premium ativo! Obrigado pela subscrição.');
+  closePaywall();
+}
+
+// Check trial limit before translation
+function checkTrialLimit() {
+  if (isPro) return true;
+  if (trialCount >= TRIAL_LIMIT) {
+    showPaywall();
+    return false;
+  }
+  return true;
+}
+
+// ══════════════════
+// DEEPL INTEGRATION
+// ══════════════════
+
+function toggleVerify() {
+  const sec = document.getElementById('verify-section');
+  sec.style.display = sec.style.display === 'none' ? 'flex' : 'none';
+  sec.style.flexDirection = 'column';
+}
+
+async function verifySubscription() {
+  const email = document.getElementById('verify-email').value.trim();
+  const status = document.getElementById('verify-status');
+  
+  if (!email || !email.includes('@')) {
+    status.textContent = '⚠️ Introduz um email válido';
+    status.style.color = 'var(--red)';
+    return;
+  }
+  
+  status.textContent = '⏳ A verificar...';
+  status.style.color = 'var(--muted)';
+  
+  try {
+    const r = await fetch(VERIFY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email})
+    });
+    const d = await r.json();
+    
+    if (d.active && d.token) {
+      // Save token and activate Pro
+      try {
+        localStorage.setItem('lux_pro', '1');
+        localStorage.setItem('lux_pro_token', d.token);
+        localStorage.setItem('lux_pro_email', email);
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + 1);
+        localStorage.setItem('lux_pro_expiry', expiry.toISOString());
+      } catch(e) {}
+      isPro = true;
+      status.textContent = '✓ Premium ativado!';
+      status.style.color = 'var(--green)';
+      showToast('✦ Premium ativo! Bem-vindo(a)!');
+      setTimeout(() => closePaywall(), 1500);
+    } else {
+      status.textContent = '✗ ' + (d.error || 'Sem subscrição ativa');
+      status.style.color = 'var(--red)';
+      setTimeout(() => {
+        status.textContent = 'Se subscreveste agora, aguarda 1-2 minutos e tenta de novo.';
+        status.style.color = 'var(--muted)';
+      }, 3000);
+    }
+  } catch(e) {
+    status.textContent = '✗ Erro de conexão. Tenta de novo.';
+    status.style.color = 'var(--red)';
+  }
+}
+
+function toggleDeepL(){
+  useDeepL=!useDeepL;
+  document.getElementById('tog-deepl').classList.toggle('on',useDeepL);
+  document.getElementById('deepl-config').style.display=useDeepL?'flex':'none';
+  showToast(useDeepL?'⚡ DeepL ativo — tradução rápida!':'DeepL desativado');
+}
+
+function saveDeepLKey(){
+  const k=document.getElementById('deepl-key-inp').value.trim();
+  if(!k){showToast('Introduz a chave DeepL');return;}
+  deeplKey=k;
+  if(!useDeepL){
+    useDeepL=true;
+    document.getElementById('tog-deepl').classList.add('on');
+    document.getElementById('deepl-config').style.display='flex';
+  }
+  showToast('⚡ DeepL configurado!');
+  document.getElementById('deepl-status').textContent='✓ Chave guardada';
+  document.getElementById('deepl-status').style.color='var(--green)';
+  // Save to localStorage for persistence
+  try{ localStorage.setItem('deeplKey', k); localStorage.setItem('useDeepL','1'); }catch(e){}
+}
+
+async function testDeepL(){
+  if(!deeplKey){showToast('Guarda a chave DeepL primeiro');return;}
+  document.getElementById('deepl-status').textContent='⏳ A testar...';
+  const result = await translateWithDeepL('Olá, como está?','PT','EN');
+  if(result){
+    document.getElementById('deepl-status').textContent='✓ DeepL OK: "'+result+'"';
+    document.getElementById('deepl-status').style.color='var(--green)';
+    if(voiceOn) speak(result,'en');
+  } else {
+    document.getElementById('deepl-status').textContent='✗ Erro — verifica a chave';
+    document.getElementById('deepl-status').style.color='var(--red)';
+  }
+}
+
+async function detectLanguageDeepL(text){
+  // Use DeepL to detect language by translating to PT
+  try{
+    const resp = await fetch('/api/deepl',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        deeplKey: deeplKey,
+        text: text.substring(0,100),
+        target_lang: 'PT'
+      })
+    });
+    const d = await resp.json();
+    if(d.translations && d.translations[0]){
+      return {
+        detectedLang: d.translations[0].detected_source_language,
+        translation: d.translations[0].text
+      };
+    }
+  }catch(e){ console.error('DeepL detect error:',e); }
+  return null;
+}
+
+async function translateWithDeepL(text, sourceLang, targetLang){
+  try{
+    const params = {
+      auth_key: deeplKey,
+      text: text.substring(0,500),
+      target_lang: targetLang,
+      source_lang: sourceLang || null
+    };
+
+    const resp = await fetch('/api/deepl',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        deeplKey: params.auth_key,
+        text: params.text,
+        target_lang: params.target_lang,
+        source_lang: params.source_lang
+      })
+    });
+    const d = await resp.json();
+    if(d.translations && d.translations[0]){
+      return d.translations[0].text;
+    }
+  }catch(e){ console.error('DeepL translate error:',e); }
+  return null;
+}
+
+// DeepL language code mapping
+const DEEPL_LANGS = {
+  'pt':'PT','en':'EN','es':'ES','fr':'FR','de':'DE','it':'IT',
+  'nl':'NL','pl':'PL','ru':'RU','ja':'JA','zh':'ZH','ko':'KO',
+  'ar':'AR','tr':'TR','sv':'SV','da':'DA','fi':'FI','nb':'NB',
+  'ro':'RO','hu':'HU','cs':'CS','sk':'SK','bg':'BG','hr':'HR',
+  'uk':'UK','el':'EL','lt':'LT','lv':'LV','et':'ET','sl':'SL',
+  'id':'ID','hi':'HI','vi':'VI','th':'TH','ms':'MS','zh-TW':'ZH'
+};
+
 // ══════════════════
 // INIT
 // ══════════════════
@@ -1342,11 +1645,47 @@ window.onload=()=>{
         document.getElementById('api-overlay').style.display='none';
         showToast('✦ LuxTranslator pronto! Toque no microfone.');
       } else {
-        document.getElementById('api-overlay').style.display='flex';
+        // Check subscription status
+  checkSubscription();
+  try { trialCount = parseInt(localStorage.getItem('lux_trial_count') || '0'); } catch(e) {}
+
+  // Load saved DeepL key
+  try{
+    const savedDeepL = localStorage.getItem('deeplKey');
+    const savedUseDeepL = localStorage.getItem('useDeepL');
+    if(savedDeepL){ 
+      deeplKey=savedDeepL;
+      document.getElementById('deepl-key-inp').value=savedDeepL;
+    }
+    if(savedUseDeepL==='1' && savedDeepL){
+      useDeepL=true;
+      document.getElementById('tog-deepl').classList.add('on');
+      document.getElementById('deepl-config').style.display='flex';
+    }
+  }catch(e){}
+  document.getElementById('api-overlay').style.display='flex';
       }
     })
     .catch(() => {
-      document.getElementById('api-overlay').style.display='flex';
+      // Check subscription status
+  checkSubscription();
+  try { trialCount = parseInt(localStorage.getItem('lux_trial_count') || '0'); } catch(e) {}
+
+  // Load saved DeepL key
+  try{
+    const savedDeepL = localStorage.getItem('deeplKey');
+    const savedUseDeepL = localStorage.getItem('useDeepL');
+    if(savedDeepL){ 
+      deeplKey=savedDeepL;
+      document.getElementById('deepl-key-inp').value=savedDeepL;
+    }
+    if(savedUseDeepL==='1' && savedDeepL){
+      useDeepL=true;
+      document.getElementById('tog-deepl').classList.add('on');
+      document.getElementById('deepl-config').style.display='flex';
+    }
+  }catch(e){}
+  document.getElementById('api-overlay').style.display='flex';
     });
   // Start silent loop after first user interaction
   document.addEventListener('click', function initAudio() {
