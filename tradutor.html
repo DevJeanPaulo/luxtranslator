@@ -1572,12 +1572,11 @@ async function testDeepL(){
 async function detectLanguageDeepL(text){
   // Use DeepL to detect language by translating to PT
   try{
-    const sendDeeplKey = deeplKey || '';
     const resp = await fetch('/api/deepl',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        deeplKey: sendDeeplKey,
+        deeplKey: deeplKey === 'server' ? '' : (deeplKey || ''),
         text: String(text).substring(0,100),
         target_lang: 'PT'
       })
@@ -1642,11 +1641,18 @@ window.onload=()=>{
     .then(r => r.json())
     .then(d => {
       if(d.hasKey) {
-        // Server has key - no need to ask
         apiKey = 'server';
         document.getElementById('api-overlay').style.display='none';
         showToast('✦ LuxTranslator pronto! Toque no microfone.');
-      } else {
+      }
+      // Auto-enable DeepL if server has the key
+      if(d.hasDeepL) {
+        useDeepL = true;
+        deeplKey = 'server';
+        try { document.getElementById('tog-deepl').classList.add('on'); } catch(e){}
+        try { document.getElementById('deepl-config').style.display='flex'; } catch(e){}
+      }
+      if(!d.hasKey) {
         // Check subscription status
   checkSubscription();
   try { trialCount = parseInt(localStorage.getItem('lux_trial_count') || '0'); } catch(e) {}
