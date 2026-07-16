@@ -831,9 +831,10 @@ async function processTranslation(text){
     const lastClientName=(window._lastClientLang&&window._lastClientLang.name)?window._lastClientLang.name:'English';
     const lastClientCode=(window._lastClientLang&&window._lastClientLang.code)?window._lastClientLang.code:'en';
     const safeText=String(text).substring(0,300).replace(/'/g,'').replace(/"/g,'');
+    const cleanText = String(safeText).replace(/[\x00-\x1F\x7F]/g,'').trim();
     const prompt=autoDetect
-      ?'Reply ONLY with JSON: {"d":"lang_code","t":"translation","pt":true_if_portuguese}. If Portuguese: pt=true, translate to '+lastClientName+'. Else: pt=false, translate to Portuguese. Text: '+safeText
-      :'Translate to '+(langB?langB.name:'English')+'. Reply ONLY with translation: '+safeText;
+      ?'Reply ONLY with JSON object: {"d":"lang_code","t":"translation_here","pt":true}. Rules: if Portuguese set pt=true and translate to '+lastClientName+', else set pt=false and translate to Portuguese. Text to translate: '+cleanText
+      :'Translate to '+(langB?langB.name:'English')+'. Reply ONLY with the translation: '+cleanText;
 
     const sendKey=(apiKey==='server')?'':apiKey;
     const r=await fetch('/api/translate',{
@@ -1571,12 +1572,13 @@ async function testDeepL(){
 async function detectLanguageDeepL(text){
   // Use DeepL to detect language by translating to PT
   try{
+    const sendDeeplKey = deeplKey || '';
     const resp = await fetch('/api/deepl',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        deeplKey: deeplKey,
-        text: text.substring(0,100),
+        deeplKey: sendDeeplKey,
+        text: String(text).substring(0,100),
         target_lang: 'PT'
       })
     });
@@ -1604,10 +1606,10 @@ async function translateWithDeepL(text, sourceLang, targetLang){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        deeplKey: params.auth_key,
-        text: params.text,
-        target_lang: params.target_lang,
-        source_lang: params.source_lang
+        deeplKey: params.auth_key || '',
+        text: String(params.text || ''),
+        target_lang: String(params.target_lang || 'PT'),
+        source_lang: params.source_lang ? String(params.source_lang) : null
       })
     });
     const d = await resp.json();
