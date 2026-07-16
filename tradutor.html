@@ -187,13 +187,10 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 
 
 /* DEBUG PANEL */
-.debug-panel{position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.95);border-top:2px solid var(--red);padding:8px;font-family:monospace;font-size:10px;color:#0f0;z-index:9998;display:none}
-.debug-panel.show{display:block}
 .debug-line{padding:2px 0;border-bottom:1px solid #111;word-break:break-all}
 .debug-line.err{color:#f55}
 .debug-line.ok{color:#5f5}
 .debug-line.inf{color:#55f}
-.debug-toggle{position:fixed;bottom:70px;right:10px;background:#111;border:1px solid var(--red);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--red);cursor:pointer;z-index:9999}
 
 
 /* PAYWALL */
@@ -476,8 +473,6 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 
 
 <!-- DEBUG PANEL -->
-<button class="debug-toggle" onclick="toggleDebug()">🐛 Debug</button>
-<div class="debug-panel" id="debug-panel"></div>
 
 
   <!-- PAYWALL -->
@@ -1370,13 +1365,10 @@ setTimeout(populateVoiceSelect, 1000);
 // DEBUG
 // ══════════════════
 let debugVisible = false;
-function toggleDebug() {
   debugVisible = !debugVisible;
-  document.getElementById('debug-panel').classList.toggle('show', debugVisible);
 }
 
 function dbg(msg, type='inf') {
-  const panel = document.getElementById('debug-panel');
   if (!panel) return;
   const line = document.createElement('div');
   line.className = 'debug-line ' + type;
