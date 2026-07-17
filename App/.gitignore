@@ -1,0 +1,5 @@
+node_modules/
+.idea/
+ecosystem.config.js
+.env
+*.log
