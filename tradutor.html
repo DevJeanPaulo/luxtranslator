@@ -451,7 +451,7 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 
 
   <!-- PAYWALL -->
-  <div class="paywall-overlay" id="paywall-overlay">
+  <div class="paywall-overlay" id="paywall-overlay" style="display:none">
     <div class="paywall-card">
       <div class="paywall-crown">👑</div>
       <div class="paywall-title">LuxTranslator Premium</div>
@@ -1518,10 +1518,11 @@ window.onload=()=>{
         try { document.getElementById('tog-deepl').classList.add('on'); } catch(e){}
         try { document.getElementById('deepl-config').style.display='flex'; } catch(e){}
       }
-      // If server has both keys, user is on company plan - no trial limit
-      if(d.hasKey && d.hasDeepL) {
+      // Server deployment - no trial limit needed
+      if(d.hasKey) {
         isPro = true;
         trialCount = 0;
+        try { localStorage.removeItem('lux_trial_count'); } catch(e) {}
       }
       if(!d.hasKey) {
         // Check subscription status
