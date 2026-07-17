@@ -358,7 +358,7 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:6px">Palavra de paragem: sempre <strong style="color:var(--red)">"Finalizar"</strong></div>
     </div>
-    <div class="s-sec">
+    <div class="s-sec" id="sec-deepl">
       <span class="s-lbl">⚡ DeepL API — Tradução Rápida</span>
       <div class="s-row">
         <div><div class="s-row-t">Usar DeepL</div><div class="s-row-s">Tradução em menos de 1 segundo</div></div>
@@ -374,7 +374,7 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
         <div id="deepl-status" style="font-size:11px;color:var(--muted);text-align:center"></div>
       </div>
     </div>
-    <div class="s-sec">
+    <div class="s-sec" id="sec-anthropic">
       <span class="s-lbl">Chave API Anthropic</span>
       <div class="s-row-wrap">
         <input type="password" class="s-inp" id="s-api" placeholder="sk-ant-...">
@@ -1573,6 +1573,8 @@ window.onload=()=>{
         showToast('✦ LuxTranslator pronto! Toque no microfone.');
         // Auto-start listening
         setTimeout(() => startListening(), 1000);
+        // Server already has the key configured - hide technical config from end users
+        try { document.getElementById('sec-anthropic').style.display='none'; } catch(e){}
       }
       // Auto-enable DeepL if server has the key
       if(d.hasDeepL) {
@@ -1580,6 +1582,8 @@ window.onload=()=>{
         deeplKey = 'server';
         try { document.getElementById('tog-deepl').classList.add('on'); } catch(e){}
         try { document.getElementById('deepl-config').style.display='flex'; } catch(e){}
+        // Server already has the key configured - hide technical config from end users
+        try { document.getElementById('sec-deepl').style.display='none'; } catch(e){}
       }
       // Server deployment - no trial limit needed
       if(d.hasKey) {
