@@ -555,6 +555,51 @@ let rec=null, voiceSpeed=1.0;
 let msgs=[];
 
 // ══════════════════
+// TRIAL / PAYWALL (subscription gating)
+// ══════════════════
+function checkSubscription() {
+  try {
+    const pro = localStorage.getItem('lux_pro');
+    const expiry = localStorage.getItem('lux_pro_expiry');
+    if (pro === '1' && expiry && new Date(expiry) > new Date()) {
+      isPro = true;
+    } else if (pro === '1' && expiry && new Date(expiry) <= new Date()) {
+      isPro = false;
+      try { localStorage.removeItem('lux_pro'); } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+function checkTrialLimit() {
+  if (isPro) return true;
+  if (trialCount >= TRIAL_LIMIT) {
+    openPaywall();
+    return false;
+  }
+  trialCount++;
+  try { localStorage.setItem('lux_trial_count', trialCount); } catch(e) {}
+  const remainEl = document.getElementById('trial-remaining');
+  if (remainEl) remainEl.textContent = Math.max(0, TRIAL_LIMIT - trialCount);
+  return true;
+}
+
+function openPaywall() {
+  const remainEl = document.getElementById('trial-remaining');
+  if (remainEl) remainEl.textContent = Math.max(0, TRIAL_LIMIT - trialCount);
+  const pw = document.getElementById('paywall-overlay');
+  if (pw) pw.style.display = 'flex';
+}
+
+function closePaywall() {
+  const pw = document.getElementById('paywall-overlay');
+  if (pw) pw.style.display = 'none';
+}
+
+function goSubscribe() {
+  window.open(STRIPE_URL, '_blank');
+}
+
+// ══════════════════
 // SET UI STATE
 // ══════════════════
 function setUI(state){
