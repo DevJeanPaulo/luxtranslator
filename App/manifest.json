@@ -1,8 +1,8 @@
-{
+﻿{
   "id": "/",
   "name": "LuxTranslator",
   "short_name": "LuxTranslator",
-  "description": "Intérprete de voz em tempo real",
+  "description": "Interprete de voz em tempo real",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#080808",
