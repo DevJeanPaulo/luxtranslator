@@ -186,6 +186,24 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 .btn-full-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:10px;padding:14px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--black);cursor:pointer;width:100%;font-family:'Inter',sans-serif}
 
 
+/* PAYWALL */
+.paywall-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:150;display:none;align-items:flex-end;justify-content:center}
+.paywall-card{background:var(--card);border:1.5px solid var(--gold);border-radius:22px 22px 0 0;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;padding:24px 22px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;animation:up 0.3s ease;box-sizing:border-box}
+.paywall-crown{font-size:34px;text-align:center}
+.paywall-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold-light);text-align:center}
+.paywall-sub{font-size:12px;color:var(--muted);text-align:center;line-height:1.5;margin-top:-4px}
+.paywall-features{display:flex;flex-direction:column;gap:6px;background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:4px}
+.paywall-feature{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:8px}
+.paywall-feature span{color:var(--gold);flex-shrink:0}
+.paywall-price{text-align:center;margin-top:4px}
+.paywall-amount{font-family:'Playfair Display',serif;font-size:38px;color:var(--gold-light)}
+.paywall-period{font-size:11px;color:var(--muted);margin-top:2px}
+.paywall-saving{font-size:11px;color:var(--green);margin-top:4px}
+.btn-subscribe{background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:12px;padding:15px;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--black);cursor:pointer;width:100%;font-family:'Inter',sans-serif;margin-top:4px}
+.btn-continue-free{background:none;border:1px solid var(--border);border-radius:10px;padding:11px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;width:100%}
+.paywall-trial{text-align:center;font-size:11px;color:var(--muted)}
+.paywall-trial strong{color:var(--gold)}
+
 /* TOAST */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:12px;color:var(--dim);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;z-index:9999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -474,7 +492,7 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
       <div id="verify-section" style="display:none;flex-direction:column;gap:8px">
         <div style="text-align:center;font-size:12px;color:var(--muted)">Já subscreveste? Insere o teu email para ativar:</div>
         <input type="email" id="verify-email" placeholder="email@exemplo.com" style="background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--white);font-family:Inter,sans-serif;outline:none;width:100%;box-sizing:border-box">
-        <button onclick="verifySubscription()" style="background:var(--black-card);border:1px solid var(--gold);border-radius:10px;padding:12px;font-size:12px;color:var(--gold);cursor:pointer;font-family:Inter,sans-serif;letter-spacing:1px">✓ Verificar Subscrição</button>
+        <button onclick="verifySubscription()" style="background:var(--soft);border:1px solid var(--gold);border-radius:10px;padding:12px;font-size:12px;color:var(--gold);cursor:pointer;font-family:Inter,sans-serif;letter-spacing:1px">✓ Verificar Subscrição</button>
         <div id="verify-status" style="font-size:11px;text-align:center;color:var(--muted)"></div>
       </div>
 
@@ -553,6 +571,51 @@ let autoDetect=true, voiceOn=true, bgOn=true;
 let langA=null, langB=null, langTarget='A';
 let rec=null, voiceSpeed=1.0;
 let msgs=[];
+
+// ══════════════════
+// TRIAL / PAYWALL (subscription gating)
+// ══════════════════
+function checkSubscription() {
+  try {
+    const pro = localStorage.getItem('lux_pro');
+    const expiry = localStorage.getItem('lux_pro_expiry');
+    if (pro === '1' && expiry && new Date(expiry) > new Date()) {
+      isPro = true;
+    } else if (pro === '1' && expiry && new Date(expiry) <= new Date()) {
+      isPro = false;
+      try { localStorage.removeItem('lux_pro'); } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+function checkTrialLimit() {
+  if (isPro) return true;
+  if (trialCount >= TRIAL_LIMIT) {
+    openPaywall();
+    return false;
+  }
+  trialCount++;
+  try { localStorage.setItem('lux_trial_count', trialCount); } catch(e) {}
+  const remainEl = document.getElementById('trial-remaining');
+  if (remainEl) remainEl.textContent = Math.max(0, TRIAL_LIMIT - trialCount);
+  return true;
+}
+
+function openPaywall() {
+  const remainEl = document.getElementById('trial-remaining');
+  if (remainEl) remainEl.textContent = Math.max(0, TRIAL_LIMIT - trialCount);
+  const pw = document.getElementById('paywall-overlay');
+  if (pw) pw.style.display = 'flex';
+}
+
+function closePaywall() {
+  const pw = document.getElementById('paywall-overlay');
+  if (pw) pw.style.display = 'none';
+}
+
+function goSubscribe() {
+  window.open(STRIPE_URL, '_blank');
+}
 
 // ══════════════════
 // SET UI STATE
