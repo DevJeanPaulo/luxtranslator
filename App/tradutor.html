@@ -486,8 +486,12 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
         <div class="paywall-period">por mês · Cancele quando quiser</div>
         <div class="paywall-saving">✦ Menos de 7 cêntimos por dia</div>
       </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <input type="email" id="subscribe-email" placeholder="O teu email" style="background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:12px 13px;font-size:13px;color:var(--white);font-family:Inter,sans-serif;outline:none;width:100%;box-sizing:border-box">
+        <div id="subscribe-email-error" style="font-size:11px;color:var(--red);text-align:center;display:none">Introduz um email válido para continuar</div>
+      </div>
       <button class="btn-subscribe" onclick="goSubscribe()">✦ Subscrever Agora</button>
-      
+
       <!-- Email verification after payment -->
       <div id="verify-section" style="display:none;flex-direction:column;gap:8px">
         <div style="text-align:center;font-size:12px;color:var(--muted)">Já subscreveste? Insere o teu email para ativar:</div>
@@ -561,8 +565,8 @@ const LANGS=[
 let apiKey='', wakeWord='teste', stopWord='finalizar';
 let isPro = false;
 let trialCount = 0;
-const TRIAL_LIMIT = 1; // TEMP: 1 para teste — reverter para 10 depois
-const STRIPE_URL = 'https://buy.stripe.com/dRm8wP74je8bat7g4Bawo01';
+const TRIAL_LIMIT = 10; // 10 traduções grátis
+const STRIPE_URL = 'https://buy.stripe.com/00w6oHgKE3sJ5RBb9i63K00';
 const VERIFY_URL = 'https://luxtransfers.pt/api/verify.php';
 let deeplKey=''; // DeepL API key for fast translation
 let useDeepL=false;
@@ -614,7 +618,18 @@ function closePaywall() {
 }
 
 function goSubscribe() {
-  window.open(STRIPE_URL, '_blank');
+  const emailInp = document.getElementById('subscribe-email');
+  const errEl = document.getElementById('subscribe-email-error');
+  const email = (emailInp?.value || '').trim();
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    if (errEl) errEl.style.display = 'block';
+    if (emailInp) emailInp.focus();
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  try { localStorage.setItem('lux_pending_email', email); } catch(e) {}
+  const url = STRIPE_URL + '?prefilled_email=' + encodeURIComponent(email);
+  window.open(url, '_blank');
 }
 
 // ══════════════════
@@ -1408,6 +1423,11 @@ function toggleVerify() {
   const sec = document.getElementById('verify-section');
   sec.style.display = sec.style.display === 'none' ? 'flex' : 'none';
   sec.style.flexDirection = 'column';
+  try {
+    const pending = localStorage.getItem('lux_pending_email');
+    const emailInp = document.getElementById('verify-email');
+    if (pending && emailInp && !emailInp.value) emailInp.value = pending;
+  } catch(e) {}
 }
 
 async function verifySubscription() {
