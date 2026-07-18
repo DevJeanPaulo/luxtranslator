@@ -1460,6 +1460,41 @@ async function verifySubscription() {
   }
 }
 
+async function verifySessionId(sessionId) {
+  try {
+    const r = await fetch(VERIFY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: sessionId})
+    });
+    const d = await r.json();
+    if (d.active && d.token) {
+      try {
+        localStorage.setItem('lux_pro', '1');
+        localStorage.setItem('lux_pro_token', d.token);
+        if (d.email) localStorage.setItem('lux_pro_email', d.email);
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + 1);
+        localStorage.setItem('lux_pro_expiry', expiry.toISOString());
+      } catch(e) {}
+      isPro = true;
+      closePaywall();
+      showToast('✦ Pagamento confirmado! Premium ativo!');
+    } else {
+      showToast('⚠️ Não foi possível confirmar o pagamento. Tenta "Já subscreveste?"');
+    }
+  } catch(e) {
+    showToast('⚠️ Erro a confirmar pagamento.');
+  } finally {
+    // Clean the session_id from the URL so it isn't reused/bookmarked
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('session_id');
+      window.history.replaceState({}, '', url.toString());
+    } catch(e) {}
+  }
+}
+
 function toggleDeepL(){
   useDeepL=!useDeepL;
   document.getElementById('tog-deepl').classList.toggle('on',useDeepL);
@@ -1561,6 +1596,12 @@ const DEEPL_LANGS = {
 // INIT
 // ══════════════════
 window.onload=()=>{
+  // If returning from Stripe checkout, auto-verify the payment via session_id
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (sessionId) { verifySessionId(sessionId); }
+  } catch(e) {}
   // Load saved wake word (activation keyword)
   try{
     const savedWake = localStorage.getItem('lux_wake_word');
