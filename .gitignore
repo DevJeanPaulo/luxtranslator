@@ -1,0 +1,8 @@
+node_modules/
+.idea/
+ecosystem.config.js
+.env
+*.log
+PlayStore/
+App/novo-logo.png.png
+App/.vscode/
