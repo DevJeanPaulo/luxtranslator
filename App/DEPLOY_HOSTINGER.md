@@ -124,12 +124,29 @@ Podes guardar isto como um script `deploy.sh` no servidor para facilitar:
 ```
 cat > /var/www/deploy.sh << 'EOF'
 #!/bin/bash
-cd /var/www/luxtranslator
+set -e
+
+cd /var/www/luxtranslator || exit 1
+
 git pull origin master
-cd App
+
+cd App || exit 1
 npm install --omit=dev
 pm2 restart luxtranslator
 EOF
 chmod +x /var/www/deploy.sh
 ```
 Depois, para atualizar, basta correr `/var/www/deploy.sh` no VPS.
+
+Se preferires copiar o script do teu computador para o servidor, usa `scp` no PowerShell:
+```powershell
+scp d:\LuxTranslator\App\deploy.sh root@O_TEU_IP_DO_VPS:/var/www/deploy.sh
+```
+No VPS, garante que o ficheiro ficou executável:
+```bash
+chmod +x /var/www/deploy.sh
+```
+Então executa:
+```bash
+/var/www/deploy.sh
+```

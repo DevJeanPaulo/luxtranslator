@@ -9,9 +9,24 @@
   "theme_color": "#C9A84C",
   "orientation": "portrait",
   "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "LuxTranslator preview"
+    }
+  ],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "pt.luxtransfers.app.twa",
+      "url": "https://play.google.com/store/apps/details?id=pt.luxtransfers.app.twa"
+    }
   ],
   "categories": ["utilities", "productivity"],
   "lang": "pt"

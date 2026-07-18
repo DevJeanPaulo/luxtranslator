@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "pt.luxtransfers.app.twa",
+        "sha256_cert_fingerprints": ["B5:0A:F5:9E:17:20:A0:2D:BC:FB:B4:68:A1:45:21:64:20:17:0A:DA:57:5B:4F:74:FF:83:20:50:73:51:9A:FE"]
+      }
+    }]
