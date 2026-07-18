@@ -682,6 +682,7 @@ function saveWake(){
   if(!w)return;
   wakeWord=w.toLowerCase();
   document.getElementById('wake-display').textContent=w;
+  try{ localStorage.setItem('lux_wake_word', w); }catch(e){}
   closeSettings();
   showToast('Palavra-chave: "'+w+'" ✓');
 }
@@ -1560,6 +1561,17 @@ const DEEPL_LANGS = {
 // INIT
 // ══════════════════
 window.onload=()=>{
+  // Load saved wake word (activation keyword)
+  try{
+    const savedWake = localStorage.getItem('lux_wake_word');
+    if(savedWake){
+      wakeWord = savedWake.toLowerCase();
+      const wd = document.getElementById('wake-display');
+      const wi = document.getElementById('wake-inp');
+      if(wd) wd.textContent = savedWake;
+      if(wi) wi.value = savedWake;
+    }
+  }catch(e){}
   try { requestWakeLock(); } catch(e) {}
   try { setupMedia(); } catch(e) {}
   setTimeout(() => { try { populateVoiceSelect(); } catch(e) {} }, 1000);
