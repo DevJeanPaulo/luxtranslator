@@ -1643,12 +1643,9 @@ window.onload=()=>{
         // Server already has the key configured - hide technical config from end users
         try { document.getElementById('sec-deepl').style.display='none'; } catch(e){}
       }
-      // Server deployment - no trial limit needed
-      if(d.hasKey) {
-        isPro = true;
-        trialCount = 0;
-        try { localStorage.removeItem('lux_trial_count'); } catch(e) {}
-      }
+      // Note: trial/subscription status is already loaded unconditionally at the
+      // top of window.onload, so the paywall applies even when the server has
+      // its own API key configured (subscriptions fund the server's API costs).
       if(!d.hasKey) {
         // Check subscription status
   checkSubscription();
