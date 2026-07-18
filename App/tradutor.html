@@ -1602,6 +1602,11 @@ window.onload=()=>{
     const sessionId = params.get('session_id');
     if (sessionId) { verifySessionId(sessionId); }
   } catch(e) {}
+  // Load trial count and subscription status (must run regardless of whether
+  // the server has its own API key configured, otherwise the trial counter
+  // resets to 0 every time the app is reopened and the paywall never triggers)
+  checkSubscription();
+  try { trialCount = parseInt(localStorage.getItem('lux_trial_count') || '0'); } catch(e) {}
   // Load saved wake word (activation keyword)
   try{
     const savedWake = localStorage.getItem('lux_wake_word');
